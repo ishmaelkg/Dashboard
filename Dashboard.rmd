@@ -1,0 +1,658 @@
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#           ZIMBABWE COVID-19 DASHBOARD FOR GOOD HEALTH ORGANISATION              #
+#      RESEARCHING ON COVID-19 IN ZIMBABWE IN COMPARISON TO OTHER COUNTRIES       #
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#      GROUP 13 MEMBERS                                                           #
+#      STUDENT NAMES	              REG NUMBER                                    #
+#  1.		STALYNE F. CHAHURUVA	      C21143902I                                    #
+#  2.		ISHMAEL G. KUTAMBURA	      C20143464L                                    #
+#  3.		ENERST ZIMUDZI	            C21143982O                                    #
+#  4.		CAROLINE NYAMUTSWA	        C21143960L                                    #
+#  5.		MISHECK MARENGA	            C21143570Q                                    #
+#  6.		VIMBAI MUSHORE	            C21143986L                                    #
+#  7.		DANIEL S. NEGANJE	          C21143676A                                    #
+#  8.		STANLEY CHIVANDIRE	        C15126377V                                    #
+#  9.		MALVERN T. CHIWARA	        C14122649M                                    #
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+
+
+---
+title: "ZIMBABWE COVID-19 DASHBOARD FOR GOOD HEALTH"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: scroll
+---
+
+
+```{r}
+library(flexdashboard)
+library(ggplot2)
+library(tm)
+library(wordcloud)
+library(DT)
+library(dplyr)
+library(tidyverse)
+library(tm)
+library(ggplot2)
+library(wordcloud)
+library(flexdashboard)
+library(broom)
+library(knitr)
+library(data.table)
+library(rgdal)
+library(sp)
+library(DT)
+library(rpivotTable)
+library(ggplot2)
+library(leaflet)
+library(sf)
+library(grid)
+library(tidyverse)
+library(IRdisplay)
+library(plotly)
+library(dplyr)
+library(ggpubr)
+library(openintro)
+library(highcharter)
+library(ggvis)
+library(fontawesome)
+```
+
+```{r}
+# Load Shape
+library(readOGR)
+base_data <- readOGR("C:\\Users\\Ishmael.Kutambura\\Desktop\\CUT EXAMS\\WEEKEND\\SEMESTER 1 LECTURES\\MSCDA604 - Data Visualisation Techniques\\Assignments\\Assignment 2\\Visual project\\TM_WORLD_BORDERS_SIMPL-0.3",
+                     layer="TM_WORLD_BORDERS_SIMPL-0.3",verbose=FALSE)
+
+# Load data
+# Select World Data
+base_data@data <- read.csv(file.choose())
+data1 = base_data@data
+
+
+# Color Palettes
+# Death
+mybins <- c(0,1000, 5000, 10000,50000, 100000, 200000, Inf)
+mypalette <- colorBin( palette="YlOrBr", domain=data1$DEATH, na.color="transparent", bins=mybins)
+
+# GDP
+mybins1 <- c(0,1000, 5000, 10000,20000, 50000, 60000)
+mypalette1 <- colorBin( palette="YlOrBr", domain=data1$GDP, na.color="transparent", bins=mybins1)
+
+
+# Text popup:
+mytext <- paste(
+  "Country: ", data1$NAME,"<br/>", 
+  "Area: ", data1$AREA, "<br/>",
+  "Population: ", data1$POP, "<br/>",
+  "GDP: ", data1$GDP, "<br/>",
+  "Deaths: ", data1$DEATH, "<br/>",
+  "Recovery Rate: ", round(data1$RECOVERED / data1$CONFIRMED * 100,1), "%",
+  sep="") %>%
+  lapply(htmltools::HTML)
+
+# Choropleth map displaying divided geographical areas or regions that are coloured in relation to Covid deaths and GDP
+
+# Using the leaflet package to build interactive map to enable zooming and hovering over a country to gets more details about it
+m <- leaflet(base_data) %>% 
+  addTiles()  %>% 
+  setView( lat=-19, lng=30 , zoom=4) %>%
+  addPolygons(
+    fillColor = ~mypalette(DEATH), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3,
+    label = mytext,
+    group = "Death",
+    labelOptions = labelOptions( 
+      style = list("font-weight" = "normal", padding = "5px 8px"), 
+      textsize = "13px", 
+      direction = "auto"
+    ),
+  ) %>%
+  addLegend( pal=mypalette, values=~DEATH, opacity=0.9, title = "COVID Related Deaths ", position = "bottomleft", group = "Death") %>%
+  addPolygons(
+    fillColor = ~mypalette1(GDP), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3,
+    label = mytext,
+    group = "GDP",
+    labelOptions = labelOptions( 
+      style = list("font-weight" = "normal", padding = "5px 8px"), 
+      textsize = "13px", 
+      direction = "auto"
+    ),
+  ) %>%
+  addLegend( pal=mypalette, values=~GDP, opacity=0.9, title = "GDP ", position = "bottomright", group = "GDP" ) %>%
+  addLayersControl(overlayGroups = c("Death", "GDP"), 
+                 options = layersControlOptions(collapsed = F))
+m
+
+```
+About Report
+========================================
+```{r}
+tags$h1("Zimbabwe COVID-19 Task Force was commissioned to inform the Zimbabwean populace  how the COVID-19 pandemic is spreading across the world. Whilst the comparison with the whole world was required, it was particularly important to share statistics within and among SADC countries. Better still, Covid-19 in Zimbabwe would be the gist of having this dashboard to see how as a country we are faring with this fatal disease. 
+        
+        Good Health, a research comapny decided to come up with a dashboard to assist with statistics on Covid-19 which the Zimbabwe Task Force would make use of for references. This is the beginning of the design of the Covid-19 dashboard")
+
+```
+
+```{r}
+# Library
+library(leaflet)
+
+# Create a color palette for the map:
+mypalette <- colorNumeric( palette="viridis", domain=base_data@data$POP, na.color="transparent")
+mypalette(c(45,43))
+
+# Basic choropleth with leaflet?
+m <- leaflet(base_data) %>% 
+  addTiles()  %>% 
+  setView( lat=10, lng=0 , zoom=2) %>%
+  addPolygons( fillColor = ~mypalette(POP), stroke=FALSE )
+
+m
+```
+
+### Visualize the numeric variable
+
+```{r}
+# load ggplot2
+library(ggplot2)
+
+# Distribution of the population per country?
+base_data@data %>% 
+  ggplot( aes(x=as.numeric(POP))) + 
+    geom_histogram(bins=20, fill='#69b3a2', color='white') +
+    xlab("Population") + 
+    theme_bw()
+```
+
+### Change color scale
+```{r}
+# Color by quantile
+m <- leaflet(base_data)%>% addTiles()  %>% setView( lat=10, lng=0 , zoom=2) %>%
+  addPolygons( stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5, color = ~colorQuantile("YlOrRd", POP)(POP) )
+m
+ 
+# Numeric palette
+m <- leaflet(base_data)%>% addTiles()  %>% setView( lat=10, lng=0 , zoom=2) %>%
+  addPolygons( stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5, color = ~colorNumeric("YlOrRd", POP)(POP) )
+m
+ 
+# Bin
+m <- leaflet(base_data)%>% addTiles()  %>% setView( lat=10, lng=0 , zoom=2) %>%
+  addPolygons( stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5, color = ~colorBin("YlOrRd", POP)(POP) )
+m
+```
+
+### Customizied leaflet choropleth map
+
+```{r}
+# Create a color palette with handmade bins.
+library(RColorBrewer)
+mybins <- c(0,10,20,50,100,500,Inf)
+mypalette <- colorBin( palette="YlOrBr", domain=base_data@data$POP, na.color="transparent", bins=mybins)
+ 
+# Prepare the text for tooltips:
+mytext <- paste(
+    "Country: ", base_data@data$NAME,"<br/>", 
+    "Area: ", base_data@data$AREA, "<br/>", 
+    "Population: ", round(base_data@data$POP, 2), 
+    "GDP: ", base_data@data$GDP, "<br/>",
+    "Deaths: ", base_data@data$DEATH, "<br/>",
+    "Recovery Rate: ", round(base_data@data$RECOVERED / base_data@data$CONFIRMED * 100,1), "%",
+    sep="") %>%
+  lapply(htmltools::HTML)
+ 
+# Final Choropleth map displaying divided geographical areas or regions that are coloured in relation to Covid deaths and GDP
+
+# Using the leaflet package to build interactive map to enable zooming and hovering over a country to gets more details about it
+m <- leaflet(base_data) %>% 
+  addTiles()  %>% 
+  setView( lat=-19, lng=30 , zoom=4) %>%
+  addPolygons(
+    fillColor = ~mypalette(DEATH), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3,
+    label = mytext,
+    group = "Death",
+    labelOptions = labelOptions( 
+      style = list("font-weight" = "normal", padding = "5px 8px"), 
+      textsize = "13px", 
+      direction = "auto"
+    ),
+  ) %>%
+  addLegend( pal=mypalette, values=~DEATH, opacity=0.9, title = "COVID Related Deaths ", position = "bottomleft", group = "Death") %>%
+  addPolygons(
+    fillColor = ~mypalette1(GDP), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3,
+    label = mytext,
+    group = "GDP",
+    labelOptions = labelOptions( 
+      style = list("font-weight" = "normal", padding = "5px 8px"), 
+      textsize = "13px", 
+      direction = "auto"
+    ),
+  ) %>%
+  addLegend( pal=mypalette, values=~GDP, opacity=0.9, title = "GDP ", position = "bottomright", group = "GDP" ) %>%
+  addLayersControl(overlayGroups = c("Death", "GDP"), 
+                 options = layersControlOptions(collapsed = F))
+m
+```
+
+### COVID 19 Analysis
+
+```{r}
+valueBox(paste(""),
+         color = "warning")
+```
+
+```{r}
+#Display values
+death.zim <- data1 %>% filter(NAME == "Zimbabwe") %>% select(DEATH)
+infected.zim <- data1 %>% filter(NAME == "Zimbabwe") %>% select(CONFIRMED)
+recovered.zim <- data1 %>% filter(NAME == "Zimbabwe") %>% select(RECOVERED)
+
+```
+
+### Data Effects Analysis
+
+```{r}
+valueBox(infected.zim, caption = 'Total Infected', icon = 'fa fa-ambulance')
+       
+```
+
+### Totally Destroyed
+```{r}
+valueBox(recovered.zim, caption =  "Total Recoveries", icon = 'fa fa-smile-o')
+        
+```
+
+### Partially Destroyed
+
+```{r}
+valueBox(death.zim, caption =  "Total Fatalities", icon = "fa fa-close")
+```
+
+### Effects by SADC
+
+```{r}
+#select SADC COVID
+library(corrplot)
+sadc_csv <- read.csv(file.choose(), header = TRUE)
+sadc <- as.data.frame(sadc_csv)
+#Grouped
+ggplot(sadc, aes(fill=Property, y=Value, x=Country)) + 
+  geom_bar(position="dodge", stat="identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+```
+
+### Correlation of Factors
+
+```{r}
+
+trimmed <- data1 %>% select(6:17)
+corrplot(cor(trimmed), method = "circle")
+
+```
+Data Table for the Covid Dashboard
+========================================
+
+```{r}
+data1 %>%
+  datatable(extensions = 'Buttons',
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),
+                                             c(10,25,50,"All"))))
+
+```
+### Hexabinning the map of US using mutate
+
+```{r}
+# library
+library(tidyverse)
+library(geojsonio)
+library(RColorBrewer)
+library(rgdal)
+
+
+# Load this file. (Note: I stored in a folder called DATA)
+spdf <- geojson_read("World_Borders/us_states_hexgrid.json",  what = "sp")
+
+# Bit of reformating
+spdf@data = spdf@data %>%
+  mutate(google_name = gsub(" \\(United States\\)", "", google_name))
+
+# Show it
+plot(spdf)
+
+```
+
+### Hexabin with state name
+```{r}
+# I need to 'fortify' the data to be able to show it with ggplot2 (we need a data frame format)
+library(broom)
+spdf@data = spdf@data %>% mutate(google_name = gsub(" \\(United States\\)", "", google_name))
+spdf_fortified <- tidy(spdf, region = "google_name")
+
+# Calculate the centroid of each hexagon to add the label:
+library(rgeos)
+centers <- cbind.data.frame(data.frame(gCentroid(spdf, byid=TRUE), id=spdf@data$iso3166_2))
+ 
+# Now I can plot this shape easily as described before:
+ggplot() +
+  geom_polygon(data = spdf_fortified, aes( x = long, y = lat, group = group), fill="skyblue", color="white") +
+  geom_text(data=centers, aes(x=x, y=y, label=id)) +
+  theme_void() +
+  coord_map()
+
+```
+
+### Effects by SADC
+
+```{r}
+#select SADC COVID
+library(corrplot)
+sadc_csv <- read.csv(file.choose(), header = TRUE)
+sadc <- as.data.frame(sadc_csv)
+#Grouped
+ggplot(sadc, aes(fill=Property, y=Value, x=Country)) + 
+  geom_bar(position="dodge", stat="identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+```
+
+### Cartogram
+
+```{r}
+# Keep only data concerning Africa
+library(maptools)
+data(my_africa)
+
+
+my_africa <- readOGR("C:\\Users\\Ishmael.Kutambura\\Desktop\\CUT EXAMS\\WEEKEND\\SEMESTER 1 LECTURES\\MSCDA604 - Data Visualisation Techniques\\Assignments\\Assignment 2\\Group 13 Project\\World_Borders",
+                     layer="TM_WORLD_BORDERS_SIMPL-0.3",verbose=FALSE)
+
+africa <- my_africa[base_data@data$REGION==2 , ]
+
+# We can visualize the Africa's boundaries with the plot function
+par(mar=c(0,0,0,0))
+plot(africa , xlim=c(-20,60) , ylim=c(-40,35), col="steelblue", lwd=0.5 )
+
+```
+
+### Simplifying geospatial object
+
+```{r}
+#  simplify the geospatial object. Basically, it decreases the border precision which results in a lighter object that will be plotted faster.
+# Load the rgeos library
+library(rgeos)
+
+africaSimple <- gSimplify(africa, tol = 4, topologyPreserve = TRUE)
+
+# Plot it
+par(mar=c(0,0,0,0))
+plot(africaSimple , xlim=c(-20,60) , ylim=c(-40,35), col="#59b2a3", lwd=0.5 )
+
+```
+
+### Computing the centroid of Africa
+
+```{r}
+
+# The gCentroid function computes the centroid of each region:
+# gCentroid(africa, byid=TRUE)
+
+# selecting countries with area above 20000
+africaBig <- africa[which(africa@data$AREA>20000), ]
+
+# Small manipulation to put it in a dataframe:
+centers <- cbind.data.frame(data.frame(gCentroid(africaBig, byid=TRUE), id=africaBig@data$FIPS))
+
+# Show it on the map?
+par(mar=c(0,0,0,0))
+plot(africa , xlim=c(-20,60) , ylim=c(-40,35), lwd=0.5 )
+text(centers$x, centers$y, centers$id, cex=.9, col="#69b3a2")
+
+```
+### Distorting country size with cartogram
+```{r}
+
+# We work with the cartogram library 
+library(cartogram)
+ 
+# construct a cartogram using the population in 2005
+afr_cartogram <- cartogram(africa, "POP", itermax=5)
+ 
+# This is a new geospatial object, we can visualise it!
+plot(afr_cartogram)
+
+
+```
+
+
+### Cartogram and Choropleth
+
+```{r}
+# It is a new geospatial object: we can use all the usual techniques on it! Let's start with a basic ggplot2 chloropleth map:
+library(tidyverse)
+library(broom)
+spdf_fortified <- tidy(afr_cartogram)
+spdf_fortified = spdf_fortified %>% left_join(. , afr_cartogram@data, by=c("id"="ISO3")) 
+ggplot() +
+  geom_polygon(data = spdf_fortified, aes(fill = POP, x = long, y = lat, group = group) , size=0, alpha=0.9) +
+  coord_map() +
+  theme_void()
+
+```
+### Customised Cartogram
+```{r}
+# As seen before, we can do better with a bit of customization
+library(viridis)
+ggplot() +
+  geom_polygon(data = spdf_fortified, aes(fill = POP/1000000, x = long, y = lat, group = group) , size=0, alpha=0.9) +
+  theme_void() +
+  scale_fill_viridis(name="Population (M)", breaks=c(1,50,100, 140), guide = guide_legend( keyheight = unit(3, units = "mm"), keywidth=unit(12, units = "mm"), label.position = "bottom", title.position = 'top', nrow=1)) +
+  labs( title = "Africa 2005 Population" ) +
+  ylim(-35,35) +
+  theme(
+    text = element_text(color = "#22211d"), 
+    plot.background = element_rect(fill = "#f5f5f4", color = NA), 
+    panel.background = element_rect(fill = "#f5f5f4", color = NA), 
+    legend.background = element_rect(fill = "#f5f5f4", color = NA),
+    plot.title = element_text(size= 22, hjust=0.5, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.2, 0.26)
+  ) +
+  coord_map()
+
+```
+### Interactive bubble maps with leaflet
+```{r}
+# Load libraries
+library(leaflet)
+
+# Make data with several positions
+data_red <- data.frame(LONG=42+rnorm(10), LAT=23+rnorm(10), PLACE=paste("Red_place_",seq(1,10)))
+data_blue <- data.frame(LONG=42+rnorm(10), LAT=23+rnorm(10), PLACE=paste("Blue_place_",seq(1,10)))
+
+# Initialize the leaflet map:
+m <- leaflet() %>% 
+  setView(lng=42, lat=23, zoom=6 ) %>%
+
+  # Add two tiles
+  addProviderTiles("Esri.WorldImagery", group="background 1") %>%
+  addTiles(options = providerTileOptions(noWrap = TRUE), group="background 2") %>%
+
+  # Add 2 marker groups
+  addCircleMarkers(data=data_red, lng=~LONG , lat=~LAT, radius=8 , color="black",
+                   fillColor="red", stroke = TRUE, fillOpacity = 0.8, group="Red") %>%
+  addCircleMarkers(data=data_blue, lng=~LONG , lat=~LAT, radius=8 , color="black",
+                   fillColor="blue", stroke = TRUE, fillOpacity = 0.8, group="Blue") %>%
+
+  # Add the control widget
+  addLayersControl(overlayGroups = c("Red","Blue") , baseGroups = c("background 1","background 2"), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+m
+
+```
+### Bubble Map
+```{r}
+# Libraries
+library(ggplot2)
+library(dplyr)
+ 
+# Get the world polygon and extract UK
+library(maps)
+UK <- map_data("world") %>% filter(region=="UK")
+
+# Get a data frame with longitude, latitude, and size of bubbles (a bubble = a city)
+data <- world.cities %>% filter(country.etc=="UK")
+
+```
+
+### scatterplot map
+```{r}
+# Left chart
+ggplot() +
+  geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+  geom_point( data=data, aes(x=long, y=lat)) +
+  theme_void() + ylim(50,59) + coord_map() 
+ 
+# Second graphic with names of the 10 biggest cities
+library(ggrepel)
+ggplot() +
+  geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+  geom_point( data=data, aes(x=long, y=lat, alpha=pop)) +
+  geom_text_repel( data=data %>% arrange(pop) %>% tail(10), aes(x=long, y=lat, label=name), size=5) +
+  geom_point( data=data %>% arrange(pop) %>% tail(10), aes(x=long, y=lat), color="red", size=3) +
+  theme_void() + ylim(50,59) + coord_map() +
+  theme(legend.position="none")
+
+```
+### Basic Bubble Map
+```{r}
+# virids package for the color palette
+library(viridis)
+ 
+# Left: use size and color
+ggplot() +
+  geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+  geom_point( data=data, aes(x=long, y=lat, size=pop, color=pop)) +
+  scale_size_continuous(range=c(1,12)) +
+  scale_color_viridis(trans="log") +
+  theme_void() + ylim(50,59) + coord_map() 
+ 
+# Center: reorder your dataset first! Big cities appear later = on top
+data %>%
+ arrange(pop) %>% 
+ mutate( name=factor(name, unique(name))) %>% 
+ ggplot() +
+    geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_point( aes(x=long, y=lat, size=pop, color=pop), alpha=0.9) +
+    scale_size_continuous(range=c(1,12)) +
+    scale_color_viridis(trans="log") +
+    theme_void() + ylim(50,59) + coord_map() + theme(legend.position="none")
+ 
+# Right: just use arrange(desc(pop)) instead
+data %>%
+ arrange(desc(pop)) %>% 
+ mutate( name=factor(name, unique(name))) %>% 
+ ggplot() +
+    geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_point( aes(x=long, y=lat, size=pop, color=pop), alpha=0.9) +
+    scale_size_continuous(range=c(1,12)) +
+    scale_color_viridis(trans="log") +
+    theme_void() + ylim(50,59) + coord_map() + theme(legend.position="none")
+
+```
+
+
+### Customised Bubble Map
+```{r}
+# Create breaks for the color scale
+mybreaks <- c(0.02, 0.04, 0.08, 1, 7)
+
+# Reorder data to show biggest cities on top
+data <- data %>%
+  arrange(pop) %>%
+  mutate( name=factor(name, unique(name))) %>%
+  mutate(pop=pop/1000000) 
+
+# Build the map
+data %>%
+  ggplot() +
+    geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_point(  aes(x=long, y=lat, size=pop, color=pop, alpha=pop), shape=20, stroke=FALSE) +
+    scale_size_continuous(name="Population (in M)", trans="log", range=c(1,12), breaks=mybreaks) +
+    scale_alpha_continuous(name="Population (in M)", trans="log", range=c(0.1, .9), breaks=mybreaks) +
+    scale_color_viridis(option="magma", trans="log", breaks=mybreaks, name="Population (in M)" ) +
+    theme_void() + ylim(50,59) + coord_map() + 
+    guides( colour = guide_legend()) +
+    ggtitle("The 1000 biggest cities in the UK") +
+    theme(
+      legend.position = c(0.85, 0.8),
+      text = element_text(color = "#22211d"),
+      plot.background = element_rect(fill = "#f5f5f2", color = NA), 
+      panel.background = element_rect(fill = "#f5f5f2", color = NA), 
+      legend.background = element_rect(fill = "#f5f5f2", color = NA),
+      plot.title = element_text(size= 16, hjust=0.1, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    )
+
+```
+### Interactive bubble map with plotly
+```{r}
+# Load the plotly package
+library(plotly)
+ 
+# Rorder data + Add a new column with tooltip text
+data <- data %>%
+  arrange(pop) %>%
+  mutate( name=factor(name, unique(name))) %>%
+  mutate( mytext=paste(
+    "City: ", name, "\n", 
+    "Population: ", pop, sep="")
+  )
+ 
+# Make the map (static)
+p <- data %>%
+  ggplot() +
+    geom_polygon(data = UK, aes(x=long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_point(aes(x=long, y=lat, size=pop, color=pop, text=mytext, alpha=pop) ) +
+    scale_size_continuous(range=c(1,15)) +
+    scale_color_viridis(option="inferno", trans="log" ) +
+    scale_alpha_continuous(trans="log") +
+    theme_void() +
+    ylim(50,59) +
+    coord_map() +
+    theme(legend.position = "none")
+ 
+p <- ggplotly(p, tooltip="text")
+p
+
+```
+```{r}
+### Data Table
+install.packages("DT")
+library(DT)
+
+```
+
+```{r}
+datatable(data1)
+```
