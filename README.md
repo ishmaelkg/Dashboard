@@ -14,10 +14,12 @@ Instructions
 1. When the code is run, it will prompt selection of a file. Choose the .csv file named world
 
 2. The code will prompt selecting a file for the second time. This second time choose the .csv file named SADC_COVID_19 
+ 
+3. The code will prompt selecting a file for the third time. This third time choose the .csv file named SADC_COVID_19 
 
-3. Map 1 - You get a world map if you untick Death and GDP
+4. Map 1 - You get a world map if you untick Death and GDP
 
-4. Choropleth Map 1 – you get a choropleth map showing Covid-related deaths if you choose Death
+5. Choropleth Map 1 – you get a choropleth map showing Covid-related deaths if you choose Death
 
-5. Choropleth Map 2 – you get a choropleth map showing GDP  if you choose GDP
+6. Choropleth Map 2 – you get a choropleth map showing GDP  if you choose GDP
 
